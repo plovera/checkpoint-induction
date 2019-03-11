@@ -1,0 +1,42 @@
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Inductionn</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Induction</h1>
+    <div class="row row-3">
+        <h4>By ${name}</h4>
+    </div>
+
+    <h3>Nueva preferencia</h3>
+
+    #if($preference)
+
+        <h4>Preferencia creada: <strong>${preference}</strong></h4>
+        <br>
+        <label>Abrir en: </label>
+        <br>
+        <a href="${preference}" name="MP-Checkout" class="orange-S-Sq-Ar" mp-mode="modal">modal</a>
+        <a href="${preference}" name="MP-Checkout" class="lightblue-M-Ov-ArOn" mp-mode="popup">pop-up</a>
+        <a href="${preference}" name="MP-Checkout" class="green-L-Rn" mp-mode="blank">nueva ventana</a>
+        <a href="${preference}" name="MP-Checkout" class="blue-M-Ov-Tr" mp-mode="redirect">misma ventana</a>
+
+        <!-- Pega este código antes de cerrar la etiqueta </body> -->
+        <script type="text/javascript">
+            (function(){function $MPC_load(){window.$MPC_loaded !== true && (function(){var s = document.createElement("script");s.type = "text/javascript";s.async = true;s.src = document.location.protocol+"//secure.mlstatic.com/mptools/render.js";var x = document.getElementsByTagName('script')[0];x.parentNode.insertBefore(s, x);window.$MPC_loaded = true;})();}window.$MPC_loaded !== true ? (window.attachEvent ?window.attachEvent('onload', $MPC_load) : window.addEventListener('load', $MPC_load, false)) : null;})();
+        </script>
+
+    #else
+        <label>preferencia no creada</label>
+
+    #end
+
+    <br>
+    <div>
+        <a href="/home"><button>Volver</button></a>
+    </div>
+
+</body>

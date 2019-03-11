@@ -1,0 +1,162 @@
+
+
+<html>
+<head>
+    <title>Induction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <script src="https://secure.mlstatic.com/sdk/javascript/v1/mercadopago.js"></script>
+
+    <script>
+            Mercadopago.setPublishableKey("TEST-42086961-30a6-4d68-b35f-c82069ea9a9a");
+            Mercadopago.getIdentificationTypes();
+
+        function guessingPaymentMethod(event) {
+//            var bin = Mercadopago.getBin();
+            var bin = document.getElementById("cardNumber").value;
+
+            if (event.type == "keyup") {
+                if (bin.length >= 6) {
+                    Mercadopago.getPaymentMethod({
+                        "bin": bin
+                    }, setPaymentMethodInfo);
+                }
+            } else {
+                setTimeout(function() {
+                    if (bin.length >= 6) {
+                        Mercadopago.getPaymentMethod({
+                            "bin": bin
+                        }, setPaymentMethodInfo);
+                    }
+                }, 100);
+
+                Mercadopago.getInstallments({
+                    "bin": bin,
+                    "amount": 1350
+                }, setInstallmentInfo);
+            }
+        };
+
+        function setPaymentMethodInfo(status, response) {
+            if (status == 200) {
+
+//                var paymentMethod = document.createElement('input');
+
+                var paymentMethod = document.querySelector('#paymentMethodId');
+                paymentMethod.setAttribute('name', "paymentMethodId");
+                paymentMethod.setAttribute('type', "hidden");
+                paymentMethod.setAttribute('value', response[0].id);
+
+//                var form = document.querySelector('#pay');
+//                form.appendChild(paymentMethod);
+
+                document.querySelector("input[name=paymentMethodId]").value = response[0].id;
+            }
+        };
+
+        function setInstallmentInfo(status, response) {
+            var installments = document.getElementById("installments");
+            for(var i=0;i<response[0].payer_costs.length;i++){
+                installments.options[i] = new Option(response[0].payer_costs[i].recommended_message, response[0].payer_costs[i].installments);
+            }
+        }
+
+        function sdkResponseHandler(status, response) {
+            if (status != 200 && status != 201) {
+                alert("verify filled data");
+            }else{
+                var form = document.querySelector('#pay');
+                var card = document.createElement('input');
+                card.setAttribute('name', 'token');
+                card.setAttribute('type', 'hidden');
+                card.setAttribute('value', response.id);
+                form.appendChild(card);
+                doSubmit=true;
+                form.submit();
+            }
+        };
+    </script>
+
+</head>
+
+
+<body>
+    <h1>Induction</h1>
+    <h4>- By ${name}</h4>
+    <h3>Tokenizador</h3>
+
+    <h4>Formulario</h4>
+    <form action="payment" method="post" id="pay" name="pay" >
+        <fieldset>
+            <ul>
+                <li>
+                    <label for="email">Email</label>
+                    <input id="email" name="email" value="test_user_61906920@testuser.com" type="email" placeholder="your email"/>
+                </li>
+                <li>
+                    <label for="cardNumber">Credit card number:</label>
+                    <input type="text" id="cardNumber" data-checkout="cardNumber" value="4509953566233704" placeholder="4509 9535 6623 3704" onselectstart="return false" onpaste="return false" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off
+                    oninput="guessingPaymentMethod(this)" />
+                </li>
+                <li>
+                    <label for="installments">Cuotas disponibles:</label>
+                    <select id="installments" name="installments"></select>
+                </li>
+                <li>
+                    <label for="securityCode">Security code:</label>
+                    <input type="text" id="securityCode" data-checkout="securityCode" placeholder="123" onselectstart="return false" onpaste="return false" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off />
+                </li>
+                <li>
+                    <label for="cardExpirationMonth">Expiration month:</label>
+                    <input type="text" id="cardExpirationMonth" data-checkout="cardExpirationMonth" placeholder="12" onselectstart="return false" onpaste="return false" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off />
+                </li>
+                <li>
+                    <label for="cardExpirationYear">Expiration year:</label>
+                    <input type="text" id="cardExpirationYear" data-checkout="cardExpirationYear" placeholder="2015" onselectstart="return false" onpaste="return false" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off />
+                </li>
+                <li>
+                    <label for="cardholderName">Card holder name:</label>
+                    <input type="text" id="cardholderName" data-checkout="cardholderName" placeholder="APRO" />
+                </li>
+                <li>
+                    <label for="docType">Document type:</label>
+                    <select id="docType" data-checkout="docType"></select>
+                </li>
+                <li>
+                    <label for="docNumber">Document number:</label>
+                    <input type="text" id="docNumber" data-checkout="docNumber" placeholder="12345678" />
+                </li>
+            </ul>
+            <input type="hidden" id="paymentMethodId" name="paymentMethodId" />
+            <input type="submit" value="Pay!" />
+        </fieldset>
+    </form>
+
+
+    <br>
+    <div>
+        <a href="/home"><button>Volver</button></a>
+    </div>
+
+    <!-- Pega este código antes de cerrar la etiqueta </body> -->
+    <script type="text/javascript">
+        (function(){function $MPC_load(){window.$MPC_loaded !== true && (function(){var s = document.createElement("script");s.type = "text/javascript";s.async = true;s.src = document.location.protocol+"//secure.mlstatic.com/mptools/render.js";var x = document.getElementsByTagName('script')[0];x.parentNode.insertBefore(s, x);window.$MPC_loaded = true;})();}window.$MPC_loaded !== true ? (window.attachEvent ?window.attachEvent('onload', $MPC_load) : window.addEventListener('load', $MPC_load, false)) : null;})();
+
+
+        doSubmit = false;
+        var element = document.querySelector('#pay');
+        element.addEventListener("submit", doPay);
+        function doPay(event){
+            event.preventDefault();
+            if(!doSubmit){
+                var form = document.querySelector('#pay');
+
+                Mercadopago.createToken(form, sdkResponseHandler); // The function "sdkResponseHandler" is defined below
+
+                return false;
+            }
+        };
+    </script>
+
+</body>

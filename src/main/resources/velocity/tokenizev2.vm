@@ -1,0 +1,32 @@
+
+
+<html>
+<head>
+    <title>Induction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+
+</head>
+
+
+<body>
+<h1>Induction</h1>
+<h4>- By ${name}</h4>
+<h3>Tokenizador v2</h3>
+
+<h4>Formulario</h4>
+<form action="/process_pay" method="POST">
+    <script
+            src="https://www.mercadopago.com.ar/integrations/v1/web-tokenize-checkout.js"
+            data-public-key="TEST-42086961-30a6-4d68-b35f-c82069ea9a9a"
+            data-transaction-amount="500.00"
+            data-elements-color="#8e44ad"
+            data-button-label="Donar algo">
+    </script>
+</form>
+
+<br>
+<div>
+    <a href="/home"><button>Volver</button></a>
+</div>
+</body>

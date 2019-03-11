@@ -1,0 +1,40 @@
+
+
+<html>
+<head>
+    <title>Induction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+
+
+</head>
+
+
+<body>
+<h1>Induction</h1>
+<h4>- By ${name}</h4>
+<h3>Preferencia v2</h3>
+
+<h4>Formulario</h4>
+    #if($preferenceId)
+
+    <h4>Id preferencia: <strong>${preferenceId}</strong></h4>
+    <br>
+    <form action="/process_preference" method="POST">
+        <script
+                src="https://www.mercadopago.com.ar/integrations/v1/web-tokenize-checkout.js"
+                data-preference-id="${preferenceId}"
+                data-elements-color="#8e44ad"
+                data-button-label="Pagar">
+        </script>
+    </form>
+    #else
+    <label>preferencia no creada</label>
+
+    #end
+
+
+<br>
+<div>
+    <a href="/home"><button>Volver</button></a>
+</div>
+</body>

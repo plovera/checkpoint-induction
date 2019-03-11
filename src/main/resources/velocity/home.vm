@@ -1,0 +1,23 @@
+
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>Induction</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<h1>Induction</h1>
+<div class="row row-3">
+    <h4>By ${name}</h4>
+</div>
+
+<h3>HOME</h3>
+
+<ul id="todo-list">
+    <li> <a href="/createPreference"><button>Generar preferencias</button></a> </li>
+    <li> <a href="/preference"><button>Preferencias</button></a> </li>
+    <li> <a href="/tokenizev1"><button>Tokenizar v1</button></a> </li>
+    <li> <a href="/tokenizev2"><button>Tokenizar v2</button></a> </li>
+    <li> <a href="/preferencev2"><button>Preferencia v2</button></a> </li>
+</ul>
+</body>
