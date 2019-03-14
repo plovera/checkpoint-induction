@@ -1,46 +1,60 @@
-import Util.Credential;
-import Util.Path;
-import com.mercadopago.MercadoPago;
+import com.google.common.net.MediaType;
+import data.PreferenceData;
+import util.Credential;
+import util.Path;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.datastructures.preference.Address;
 import com.mercadopago.resources.datastructures.preference.Item;
 import com.mercadopago.resources.datastructures.preference.Payer;
-import com.mercadopago.resources.datastructures.preference.BackUrls;
+import org.eclipse.jetty.http.HttpStatus;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
 import spark.template.velocity.VelocityTemplateEngine;
+import com.fasterxml.jackson.databind.*;
+import util.View;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 public class Preference {
 
-    public static Object create(Request request, Response response) throws MPException  {
-        String initPoint = newPreference().getInitPoint();
-        response.redirect(initPoint);
-        return "";
+    public static Object create(Request request, Response response) throws MPException {
+
+            PreferenceData data = newPreferenceDefault();
+            com.mercadopago.resources.Preference pref = newPreference(data);
+
+            if(pref != null && !pref.getInitPoint().isEmpty()) {
+                String initPoint = newPreference(data).getInitPoint();
+                response.redirect(initPoint);
+                return "";
+            }
+
+            response.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
+            return HttpStatus.getMessage(HttpStatus.INTERNAL_SERVER_ERROR_500);
+
     }
 
-    public static Object preference(Request request, Response response) throws MPException  {
-        com.mercadopago.resources.Preference pref = null;
-        try {
-            pref = newPreference();
-        } catch (MPException e) {
-            e.printStackTrace();
-        }
+
+    public static Object preferenceV1(Request request, Response response) throws MPException  {
+
+        PreferenceData data = newPreferenceDefault();
+        com.mercadopago.resources.Preference pref = newPreference(data);
 
         HashMap<String, Object> model = new HashMap<>();
-        model.put("name", "Pablito");
 
         if(pref != null) {
-            model.put("preferencia",pref.getInitPoint());
+            model.put("preference", pref.getInitPoint());
         }
 
-        return new VelocityTemplateEngine().render(new ModelAndView(model, Path.Template.PREFERENCE));
+        return View.render(response, model, Path.Template.PREFERENCE);
     }
 
 
-    public static Object preferencev2(Request request, Response response) throws MPException  {
-        com.mercadopago.resources.Preference preference = newPreference();
+    public static Object preferenceV2(Request request, Response response) throws MPException  {
+
+        PreferenceData data = newPreferenceDefault();
+        com.mercadopago.resources.Preference preference = newPreference(data);
 
         HashMap<String, Object> model = new HashMap<>();
         model.put("name", "Pablito");
@@ -53,7 +67,7 @@ public class Preference {
     }
 
 
-    public static Object processPreference(Request request, Response response) throws MPException {
+    public static Object process(Request request, Response response) throws MPException {
 
         String status = request.queryParams("payment_status");
         String statusDetail = request.queryParams("payment_status_detail");
@@ -61,39 +75,61 @@ public class Preference {
         return "Status: " + status + " - Detalle: " + statusDetail;
     }
 
-    private static com.mercadopago.resources.Preference newPreference() throws MPException{
-
-        MercadoPago.SDK.setClientSecret(Credential.BASIC.CLIENT_SECRET_OK);
-        MercadoPago.SDK.setClientId(Credential.BASIC.CLIENT_ID_OK);
-
+    private static com.mercadopago.resources.Preference newPreference(PreferenceData data) throws MPException{
 
         // Create a preference object
         com.mercadopago.resources.Preference preference = new com.mercadopago.resources.Preference();
         // Create an item object
         Item item = new Item();
-        item.setId("1234")
-                .setTitle("Fantastic Aluminum Plate")
-                .setQuantity(1)
-                .setCurrencyId("ARG")
-                .setUnitPrice((float) 58.02);
+        item.setId(data.getId())
+                .setTitle(data.getTitle())
+                .setQuantity(data.getQuantity())
+                .setCurrencyId(data.getCurrencyId())
+                .setUnitPrice(data.getUnitPrice());
 
         // Create a payer object
         Payer payer = new Payer();
         payer.setEmail(Credential.EMAIL);
+        Address address = new Address();
+        address.setStreetName(data.getStreetName());
+        address.setStreetNumber(data.getStreetNumber());
+        address.setZipCode(data.getZipCode());
+        payer.setAddress(address);
         // Setting preference properties
         preference.setPayer(payer);
         preference.appendItem(item);
         // Save and posting preference
-
-        BackUrls backUrls = new BackUrls(
-                "/success",
-                "/pending",
-                "/failure");
-
-        preference.setBackUrls(backUrls);
-
         preference.save();
 
         return preference;
     }
+
+
+    public static Object preference(Request request, Response response) throws MPException, IOException {
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            PreferenceData data = mapper.readValue(request.body(), PreferenceData.class);
+
+            if(!data.isValid()) {
+                response.status(HttpStatus.BAD_REQUEST_400);
+                return HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400);
+            }
+
+            String initPoint = newPreference(data).getInitPoint();
+            response.redirect(initPoint);
+            return "";
+
+        } catch(Exception e){
+            response.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
+            return HttpStatus.getMessage(HttpStatus.INTERNAL_SERVER_ERROR_500);
+        }
+
+    }
+
+    private static PreferenceData newPreferenceDefault(){
+        return new PreferenceData("123", "Mesa y sillas", 1, "ARG", 88.23F);
+    }
+
+
 }

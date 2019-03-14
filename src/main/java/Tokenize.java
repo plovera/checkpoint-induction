@@ -1,5 +1,9 @@
-import Util.Credential;
-import Util.Path;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import data.PaymentData;
+import data.PreferenceData;
+import util.Credential;
+import util.Json;
+import util.Path;
 import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
@@ -8,27 +12,40 @@ import com.mercadopago.*;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.Payment;
 import com.mercadopago.resources.datastructures.payment.Payer;
+import util.View;
 
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 
 public class Tokenize {
 
 
     public static Object tokenize(Request request, Response response) {
-        HashMap<String, Object> model = new HashMap<>();
-        model.put("name", "Pablito");
-        return new VelocityTemplateEngine().render(new ModelAndView(model, Path.Template.TOKENIZE));
+
+        return View.render(response, Path.Template.TOKENIZE);
     }
 
-    public static Object payment(Request req, Response res) throws MPException {
 
-        MercadoPago.SDK.setAccessToken(Credential.CUSTOMER.ACCESS_TOKEN);
+    public static Object viewPayment (Request request, Response response) throws UnsupportedEncodingException {
+        String body = Json.paramJson(request.body());
+        return "";
+    }
 
+    public static Object payment(Request request, Response response) throws Exception {
 
-        String email = req.queryParams("email");
-        String token = req.queryParams("token");
-        String paymentMethodId = req.queryParams("paymentMethodId");
-        int installments = Integer.parseInt(req.queryParams("installments"));
+        String body = request.body();
+        String contentType = request.contentType();
+        if(contentType != "application/json") {
+            body = Json.paramJson(body);
+        }
+
+        PaymentData data = Json.mapToData(body, PaymentData.class);
+        String tok = data.getToken();
+
+        String email = request.queryParams("email");
+        String token = request.queryParams("token");
+        String paymentMethodId = request.queryParams("payment_method_id");
+        int installments = Integer.parseInt(request.queryParams("installments"));
 
 
         Payment payment = new Payment();
@@ -61,7 +78,8 @@ public class Tokenize {
 
 
 
-    public static Object processPay(Request request, Response response) throws MPException {
+    public static Object processPay(Request request, Response response) throws Exception {
+
 
         String token = request.queryParams("token");
         String paymentMethodId = request.queryParams("payment_method_id");
@@ -73,7 +91,6 @@ public class Tokenize {
         int installments = Integer.parseInt(installmentsString);
 
 
-        MercadoPago.SDK.setAccessToken(Credential.CUSTOMER.ACCESS_TOKEN);
 //...
         Payment payment = new Payment();
         payment.setTransactionAmount(123F)

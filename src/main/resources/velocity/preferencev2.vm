@@ -19,7 +19,7 @@
 
     <h4>Id preferencia: <strong>${preferenceId}</strong></h4>
     <br>
-    <form action="/process_preference" method="POST">
+    <form action="/process" method="POST">
         <script
                 src="https://www.mercadopago.com.ar/integrations/v1/web-tokenize-checkout.js"
                 data-preference-id="${preferenceId}"

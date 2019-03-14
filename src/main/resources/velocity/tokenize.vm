@@ -13,7 +13,6 @@
             Mercadopago.getIdentificationTypes();
 
         function guessingPaymentMethod(event) {
-//            var bin = Mercadopago.getBin();
             var bin = document.getElementById("cardNumber").value;
 
             if (event.type == "keyup") {
@@ -41,15 +40,10 @@
         function setPaymentMethodInfo(status, response) {
             if (status == 200) {
 
-//                var paymentMethod = document.createElement('input');
-
                 var paymentMethod = document.querySelector('#paymentMethodId');
                 paymentMethod.setAttribute('name', "paymentMethodId");
                 paymentMethod.setAttribute('type', "hidden");
                 paymentMethod.setAttribute('value', response[0].id);
-
-//                var form = document.querySelector('#pay');
-//                form.appendChild(paymentMethod);
 
                 document.querySelector("input[name=paymentMethodId]").value = response[0].id;
             }

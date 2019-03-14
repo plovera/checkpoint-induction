@@ -14,10 +14,10 @@
 <h3>HOME</h3>
 
 <ul id="todo-list">
-    <li> <a href="/createPreference"><button>Generar preferencias</button></a> </li>
-    <li> <a href="/preference"><button>Preferencias</button></a> </li>
-    <li> <a href="/tokenizev1"><button>Tokenizar v1</button></a> </li>
-    <li> <a href="/tokenizev2"><button>Tokenizar v2</button></a> </li>
-    <li> <a href="/preferencev2"><button>Preferencia v2</button></a> </li>
+    <li> <a href="/preference/create"><button>Generar preferencias</button></a> </li>
+    <li> <a href="/preference/v1"><button>Preferencias</button></a> </li>
+    <li> <a href="/tokenize/v1"><button>Tokenizar v1</button></a> </li>
+    <li> <a href="/tokenize/v2"><button>Tokenizar v2</button></a> </li>
+    <li> <a href="/preference/v2"><button>Preferencia v2</button></a> </li>
 </ul>
 </body>
