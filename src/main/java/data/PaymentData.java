@@ -4,7 +4,7 @@ public class PaymentData {
 
     private String email;
     private String token;
-    private String paymentMethodId;
+    private String payment_method_id;
     private Integer installments;
     private String issuer_id;
     private String description;
@@ -27,9 +27,9 @@ public class PaymentData {
 
     public void setToken(String token) { this.token = token; }
 
-    public String getPaymentMethodId() { return paymentMethodId; }
+    public String getPayment_method_id() { return payment_method_id; }
 
-    public void setPaymentMethodId(String paymentMethodId) { this.paymentMethodId = paymentMethodId; }
+    public void setPayment_method_id(String payment_method_id) { this.payment_method_id = payment_method_id; }
 
     public Integer getInstallments() {
         return installments;

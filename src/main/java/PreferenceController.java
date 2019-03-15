@@ -17,7 +17,32 @@ import util.View;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class Preference {
+public class PreferenceController {
+
+
+
+    public static Object preference(Request request, Response response) throws MPException, IOException {
+
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            PreferenceData data = mapper.readValue(request.body(), PreferenceData.class);
+
+            if(!data.isValid()) {
+                response.status(HttpStatus.BAD_REQUEST_400);
+                return HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400);
+            }
+
+            String initPoint = newPreference(data).getInitPoint();
+            response.status(HttpStatus.OK_200);
+            return "";
+
+        } catch(Exception e){
+            response.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
+            return HttpStatus.getMessage(HttpStatus.INTERNAL_SERVER_ERROR_500);
+        }
+
+    }
+
 
     public static Object create(Request request, Response response) throws MPException {
 
@@ -57,23 +82,13 @@ public class Preference {
         com.mercadopago.resources.Preference preference = newPreference(data);
 
         HashMap<String, Object> model = new HashMap<>();
-        model.put("name", "Pablito");
-
         if(preference != null) {
             model.put("preferenceId", preference.getId());
         }
 
-        return new VelocityTemplateEngine().render(new ModelAndView(model, Path.Template.PREFERENCE_V2));
+        return View.render(response, model, Path.Template.PREFERENCE_V2);
     }
 
-
-    public static Object process(Request request, Response response) throws MPException {
-
-        String status = request.queryParams("payment_status");
-        String statusDetail = request.queryParams("payment_status_detail");
-
-        return "Status: " + status + " - Detalle: " + statusDetail;
-    }
 
     private static com.mercadopago.resources.Preference newPreference(PreferenceData data) throws MPException{
 
@@ -105,30 +120,17 @@ public class Preference {
     }
 
 
-    public static Object preference(Request request, Response response) throws MPException, IOException {
-
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            PreferenceData data = mapper.readValue(request.body(), PreferenceData.class);
-
-            if(!data.isValid()) {
-                response.status(HttpStatus.BAD_REQUEST_400);
-                return HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400);
-            }
-
-            String initPoint = newPreference(data).getInitPoint();
-            response.redirect(initPoint);
-            return "";
-
-        } catch(Exception e){
-            response.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
-            return HttpStatus.getMessage(HttpStatus.INTERNAL_SERVER_ERROR_500);
-        }
-
-    }
-
     private static PreferenceData newPreferenceDefault(){
         return new PreferenceData("123", "Mesa y sillas", 1, "ARG", 88.23F);
+    }
+
+
+    public static Object process(Request request, Response response) throws MPException {
+
+        String status = request.queryParams("payment_status");
+        String statusDetail = request.queryParams("payment_status_detail");
+
+        return "Status: " + status + " - Detalle: " + statusDetail;
     }
 
 

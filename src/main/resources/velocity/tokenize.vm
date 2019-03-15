@@ -40,12 +40,12 @@
         function setPaymentMethodInfo(status, response) {
             if (status == 200) {
 
-                var paymentMethod = document.querySelector('#paymentMethodId');
-                paymentMethod.setAttribute('name', "paymentMethodId");
+                var paymentMethod = document.querySelector('#payment_method_id');
+                paymentMethod.setAttribute('name', "payment_method_id");
                 paymentMethod.setAttribute('type', "hidden");
                 paymentMethod.setAttribute('value', response[0].id);
 
-                document.querySelector("input[name=paymentMethodId]").value = response[0].id;
+                document.querySelector("input[name=payment_method_id]").value = response[0].id;
             }
         };
 
@@ -85,6 +85,10 @@
         <fieldset>
             <ul>
                 <li>
+                    <label for="amount">Monto:</label>
+                    <input type="text" id="amount" name="amount" value="304.50" />
+                </li>
+                <li>
                     <label for="email">Email</label>
                     <input id="email" name="email" value="test_user_61906920@testuser.com" type="email" placeholder="your email"/>
                 </li>
@@ -122,7 +126,7 @@
                     <input type="text" id="docNumber" data-checkout="docNumber" placeholder="12345678" />
                 </li>
             </ul>
-            <input type="hidden" id="paymentMethodId" name="paymentMethodId" />
+            <input type="hidden" id="payment_method_id" name="payment_method_id" />
             <input type="submit" value="Pay!" />
         </fieldset>
     </form>

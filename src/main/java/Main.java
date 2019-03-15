@@ -1,6 +1,7 @@
 import com.google.common.net.MediaType;
 import data.ErrorResponse;
 import org.eclipse.jetty.http.HttpStatus;
+import util.BuildResponse;
 import util.Credential;
 import util.Json;
 import util.Path;
@@ -20,35 +21,44 @@ public class Main {
 
         port(4567);
 
+        // endpoint
         get("/", Home::home);
         get(Path.Web.HOME, Home::home);
-        post(Path.Web.API_PREFERENCE, Preference::preference);
-        get(Path.Web.CREATE_PREFERENCE, Preference::create);
-        get(Path.Web.PREFERENCE_V1, Preference::preferenceV1);
-        get(Path.Web.PREFERENCE_V2, Preference::preferenceV2);
-        post(Path.Web.PREFERENCE_PROCESS, Preference::process);
+        post(Path.Web.API_PREFERENCE, PreferenceController::preference);
+        get(Path.Web.CREATE_PREFERENCE, PreferenceController::create);
+        get(Path.Web.PREFERENCE_V1, PreferenceController::preferenceV1);
+        get(Path.Web.PREFERENCE_V2, PreferenceController::preferenceV2);
+        post(Path.Web.PREFERENCE_PROCESS, PreferenceController::process);
 
-        get(Path.Web.TOKENIZE_V1, Tokenize::tokenize);
-        get(Path.Web.TOKENIZE_V2, Tokenize::tokenizev2);
-        post(Path.Web.TOKENIZE_PAYMENT, Tokenize::payment);
+        get(Path.Web.TOKENIZE_V1, TokenizeController::tokenize);
+        get(Path.Web.TOKENIZE_V2, TokenizeController::tokenizev2);
+        post(Path.Web.TOKENIZE_PAYMENT, MediaType.JSON_UTF_8.toString(), TokenizeController::payment, new Json());
 
-
+        // default endpoint
         get("*", (request, response) -> {
             response.status(HttpStatus.NOT_FOUND_404);
             return HttpStatus.getMessage(HttpStatus.NOT_FOUND_404);
         });
 
+
         after(Main::afterHandler);
 
+        // Default exception
         exception(Exception.class, Main::exceptionHandler);
 
 
+        // credentials
         MercadoPago.SDK.setClientSecret(Credential.Basic.CLIENT_SECRET_OK);
         MercadoPago.SDK.setClientId(Credential.Basic.CLIENT_ID_OK);
-
         MercadoPago.SDK.setAccessToken(Credential.Customer.ACCESS_TOKEN);
     }
 
+    /**
+     *  After handler
+     * @param request
+     * @param response
+     * @throws Exception
+     */
     private static void afterHandler(Request request, Response response) throws Exception {
         // if not set, set content-type as 'application/json;charset=utf-8'
         if (!response.raw().containsHeader("Content-Type")) {
@@ -56,17 +66,16 @@ public class Main {
         }
     }
 
+    /**
+     * Default exception
+     * @param exception
+     * @param request
+     * @param response
+     */
     private static void exceptionHandler(Exception exception, Request request, Response response) {
         String message = exception.getMessage().isEmpty() ? exception.toString() : exception.getMessage();
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR_500,
                 HttpStatus.getMessage(HttpStatus.INTERNAL_SERVER_ERROR_500), message);
-        buildResponse(response, errorResponse);
-    }
-
-    private static void buildResponse(Response response, ErrorResponse errorResponse) {
-        response.header("Content-Type", MediaType.JSON_UTF_8.toString());
-        String responseBody = Json.errorDataToJson(errorResponse);
-        response.body(responseBody);
-        response.status(errorResponse.getHttpStatusCode());
+        BuildResponse.ExceptionBuild(response, errorResponse);
     }
 }
