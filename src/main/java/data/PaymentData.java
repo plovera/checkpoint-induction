@@ -1,6 +1,12 @@
 package data;
 
-public class PaymentData {
+import util.ValidationUtil;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public class PaymentData implements Validator{
 
     private String email;
     private String token;
@@ -62,4 +68,19 @@ public class PaymentData {
     public void setAmount(Float amount) {
         this.amount = amount;
     }
+
+
+    @Override
+    public List<ErrorResponse> validate() {
+        List<ErrorResponse> errors = new ArrayList<>();
+        errors.add(ValidationUtil.validateHasValue(token, "token"));
+        errors.add(ValidationUtil.validateHasValue(amount, "amount"));
+        errors.add(ValidationUtil.validateHasValue(payment_method_id, "payment_method_id"));
+        errors.add(ValidationUtil.validateIsEmail(email, "email"));
+
+        errors.removeAll(Collections.singleton(null));
+
+        return errors;
+    }
+
 }

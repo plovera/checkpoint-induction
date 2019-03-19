@@ -1,3 +1,5 @@
+package controller;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.net.MediaType;
 import data.ErrorResponse;
@@ -17,6 +19,7 @@ import com.mercadopago.resources.datastructures.payment.Payer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.List;
 
 public class TokenizeController {
 
@@ -54,18 +57,39 @@ public class TokenizeController {
      */
     public static Object payment(Request request, Response response) throws IOException, MPException {
 
-        String body = request.body();
+        // map the data
+        PaymentData data = RequestUtil.getData(request, PaymentData.class);
 
-        // if content type is application/x-www-form-urlencoded, decode to json
-        String contentType = request.contentType();
-        if(contentType.equals(MediaType.FORM_DATA.toString())) {
-            body = Json.decodeToJson(body);
+        // validate the data
+        List<ErrorResponse> errorResponses = data.validate();
+        if(!errorResponses.isEmpty()) {
+            response.status(HttpStatus.BAD_REQUEST_400);
+            return ResponseUtil.buildError(errorResponses);
         }
 
-        // mapping request data
-        PaymentData data = Json.mapToData(body, PaymentData.class);
+        // create payment and then validate
+        Payment payment = savePayment(data);
+        if(payment.getStatus() == null) {
+            response.status(HttpStatus.BAD_REQUEST_400);
+            String message = payment.getLastApiResponse() != null ? Json.getParam(payment.getLastApiResponse().getStringResponse(), "message") : ValidationUtil.INPUT_DATA_FAILED;
+            return new ErrorResponse(HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), message);
+        }
 
-        // create payment
+        // Response
+        HashMap<String, Object> model = new HashMap<>();
+        model.put("status", payment.getStatus().name());
+        model.put("statusDetail", payment.getStatusDetail());
+        response.status(HttpStatus.OK_200);
+        return model;
+    }
+
+    /**
+     * Create a Payment of MP
+     * @param data
+     * @return
+     * @throws MPException
+     */
+    private static Payment savePayment(PaymentData data) throws MPException {
         Payment payment = new Payment();
         payment.setTransactionAmount(data.getAmount())
                 .setToken(data.getToken())
@@ -75,23 +99,9 @@ public class TokenizeController {
                 .setIssuerId(data.getIssuer_id())
                 .setPayer(new Payer()
                         .setEmail(data.getEmail()));
+
         // Save payment
-        payment.save();
-
-        // if status is null, return error message
-        if(payment.getStatus() == null) {
-            String message = payment.getLastApiResponse() != null ? Json.getParam(payment.getLastApiResponse().getStringResponse(), "message") : "Input data failed";
-            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST_400, HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), message);
-            response.status(errorResponse.getHttpStatusCode());
-            return errorResponse;
-        }
-
-        // Response
-        HashMap<String, Object> model = new HashMap<>();
-        model.put("status", payment.getStatus().name());
-        model.put("statusDetail", payment.getStatusDetail());
-        response.status(HttpStatus.OK_200);
-        return model;
+        return payment.save();
     }
 
 }

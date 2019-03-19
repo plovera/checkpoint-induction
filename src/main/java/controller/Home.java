@@ -1,16 +1,20 @@
+package controller;
 
-import com.mercadopago.exceptions.MPException;
 import spark.Request;
 import spark.Response;
 import util.Path;
 import util.View;
 
-import java.util.HashMap;
-
 public class Home {
 
 
-    public static Object home(Request req, Response res) throws MPException {
+    /**
+     * Home View
+     * @param req
+     * @param res
+     * @return
+     */
+    public static Object home(Request req, Response res)  {
 
         return View.render(res, Path.Template.HOME);
     }

@@ -7,6 +7,7 @@ public class Path {
 
         public static final String API_PREFERENCE = "/preference";
         public static final String CREATE_PREFERENCE = API_PREFERENCE + "/create";
+        public static final String REDIRECT_PREFERENCE = API_PREFERENCE + "/redirect";
         public static final String PREFERENCE_V1 = API_PREFERENCE + "/v1";
         public static final String PREFERENCE_V2 = API_PREFERENCE + "/v2";
         public static final String PREFERENCE_PROCESS = API_PREFERENCE + "/process";

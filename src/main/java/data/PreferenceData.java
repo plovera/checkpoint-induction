@@ -1,6 +1,10 @@
 package data;
 
-public class PreferenceData {
+import util.ValidationUtil;
+
+import java.util.*;
+
+public class PreferenceData implements Validator {
     private String id;
     private String title;
     private Integer quantity;
@@ -61,10 +65,6 @@ public class PreferenceData {
         this.unitPrice = unitPrice;
     }
 
-    public boolean isValid() {
-        return !id.isEmpty() && !title.isEmpty() && quantity != null && quantity > 0 && !currencyId.isEmpty() && unitPrice != null && unitPrice > 0;
-    }
-
     public String getStreetName() {
         return StreetName;
     }
@@ -87,5 +87,17 @@ public class PreferenceData {
 
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+
+    @Override
+    public List<ErrorResponse> validate() {
+        List<ErrorResponse> errors = new ArrayList<>();
+        errors.add(ValidationUtil.validateHasValue(id, "id"));
+        errors.add(ValidationUtil.validateHasValue(title, "title"));
+        errors.add(ValidationUtil.validateHasValue(quantity, "quantity"));
+        errors.add(ValidationUtil.validateHasValue(unitPrice, "unitPrice"));
+
+        errors.removeAll(Collections.singleton(null));
+        return errors;
     }
 }
