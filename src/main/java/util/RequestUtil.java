@@ -19,13 +19,12 @@ public class RequestUtil {
         String body = request.body();
 
         // if content type is application/x-www-form-urlencoded, decode to json
-        String contentType = request.contentType();
-        if(contentType.equals(MediaType.FORM_DATA.toString())) {
-            body = Json.decodeMessage(body);
+        if(request.contentType().equals(MediaType.FORM_DATA.toString())) {
+            body = JsonUtil.decodeMessage(body);
         }
 
         // mapping request data
-        return Json.mapToData(body, tClass);
+        return JsonUtil.mapToData(body, tClass);
     }
 
 }

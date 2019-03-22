@@ -17,11 +17,10 @@ public class PreferenceData implements Validator {
     public PreferenceData() {
     }
 
-    public PreferenceData(String id, String title, int quantity, String currencyId, float unitPrice) {
+    public PreferenceData(String id, String title, int quantity, float unitPrice) {
         this.id = id;
         this.title = title;
         this.quantity = quantity;
-        this.currencyId = currencyId;
         this.unitPrice = unitPrice;
     }
 

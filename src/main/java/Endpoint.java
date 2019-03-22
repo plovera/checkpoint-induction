@@ -1,13 +1,15 @@
 import com.google.common.net.MediaType;
+import com.mercadopago.exceptions.MPException;
 import controller.Home;
 import controller.PreferenceController;
 import controller.TokenizeController;
 import data.ErrorResponse;
 import org.eclipse.jetty.http.HttpStatus;
 import spark.Request;
+import spark.Response;
 import spark.servlet.SparkApplication;
+import util.JsonUtil;
 import util.ResponseUtil;
-import util.Json;
 import util.Path;
 
 import java.io.IOException;
@@ -19,7 +21,7 @@ public class Endpoint implements SparkApplication {
     @Override
     public void init() {
 
-        Json json = new Json();
+        JsonUtil json = new JsonUtil();
 
         get("/", Home::home);
         get(Path.Web.HOME, Home::home);
@@ -38,23 +40,29 @@ public class Endpoint implements SparkApplication {
             response.status(HttpStatus.NOT_FOUND_404);
             return HttpStatus.getMessage(HttpStatus.NOT_FOUND_404);
         });
+        post("*", (request, response) -> {
+            response.status(HttpStatus.NOT_FOUND_404);
+            return HttpStatus.getMessage(HttpStatus.NOT_FOUND_404);
+        });
 
 
         after(Endpoint::afterHandler);
 
-        // Default exception
+        // exception
         exception(IOException.class, Endpoint::ioExceptionHandler);
+        exception(MPException.class, Endpoint::mpExceptionHandler);
         exception(Exception.class, Endpoint::exceptionHandler);
 
     }
 
     /**
      *  After handler
+     *  If it does not have header, add json content type
      * @param request
      * @param response
      * @throws Exception
      */
-    private static void afterHandler(Request request, spark.Response response) throws Exception {
+    private static void afterHandler(Request request, Response response) throws Exception {
         ResponseUtil.buildJson(response);
 
     }
@@ -65,11 +73,21 @@ public class Endpoint implements SparkApplication {
      * @param request
      * @param response
      */
-    private static void ioExceptionHandler(Exception exception, Request request, spark.Response response) {
+    private static void ioExceptionHandler(IOException exception, Request request, spark.Response response) {
         String message = exception.getMessage().isEmpty() ? exception.toString() : exception.getMessage();
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), message);
-        response.status(HttpStatus.BAD_REQUEST_400);
-        ResponseUtil.buildException(response, errorResponse);
+        ResponseUtil.buildException(response, HttpStatus.BAD_REQUEST_400, message);
+    }
+
+
+    /**
+     * MP exception
+     * @param exception
+     * @param request
+     * @param response
+     */
+    private static void mpExceptionHandler(MPException exception, Request request, Response response) {
+        String message = exception.getMessage().isEmpty() ? exception.toString() : exception.getMessage();
+        ResponseUtil.buildException(response, exception.getStatusCode(), message);
     }
 
     /**
@@ -79,9 +97,7 @@ public class Endpoint implements SparkApplication {
      * @param response
      */
     private static void exceptionHandler(Exception exception, Request request, spark.Response response) {
-        response.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
         String message = exception.getMessage().isEmpty() ? exception.toString() : exception.getMessage();
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.getMessage(HttpStatus.INTERNAL_SERVER_ERROR_500), message);
-        ResponseUtil.buildException(response, errorResponse);
+        ResponseUtil.buildException(response, HttpStatus.INTERNAL_SERVER_ERROR_500, message);
     }
 }

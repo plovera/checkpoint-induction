@@ -1,23 +1,16 @@
 package controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.net.MediaType;
 import data.ErrorResponse;
 import data.PaymentData;
-import data.PreferenceData;
 import org.eclipse.jetty.http.HttpStatus;
 import util.*;
-import spark.ModelAndView;
 import spark.Request;
 import spark.Response;
-import spark.template.velocity.VelocityTemplateEngine;
-import com.mercadopago.*;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.Payment;
 import com.mercadopago.resources.datastructures.payment.Payer;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -71,7 +64,7 @@ public class TokenizeController {
         Payment payment = savePayment(data);
         if(payment.getStatus() == null) {
             response.status(HttpStatus.BAD_REQUEST_400);
-            String message = payment.getLastApiResponse() != null ? Json.getParam(payment.getLastApiResponse().getStringResponse(), "message") : ValidationUtil.INPUT_DATA_FAILED;
+            String message = payment.getLastApiResponse() != null ? JsonUtil.getParam(payment.getLastApiResponse().getStringResponse(), "message") : ValidationUtil.INPUT_DATA_FAILED;
             return new ErrorResponse(HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), message);
         }
 

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.*;
 import data.ErrorResponse;
 import spark.ResponseTransformer;
 
-public class Json implements ResponseTransformer  {
+public class JsonUtil implements ResponseTransformer  {
 
 
     public static ObjectMapper mapper = new ObjectMapper();

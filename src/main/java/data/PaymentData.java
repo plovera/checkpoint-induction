@@ -19,6 +19,13 @@ public class PaymentData implements Validator{
     public PaymentData() {
     }
 
+    public PaymentData(String email, String token, String payment_method_id, Float amount) {
+        this.email = email;
+        this.token = token;
+        this.payment_method_id = payment_method_id;
+        this.amount = amount;
+    }
+
     public String getEmail() {
         return email;
     }

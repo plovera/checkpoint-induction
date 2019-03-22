@@ -34,20 +34,14 @@ public class PreferenceController {
         // Map the data
         PreferenceData data = RequestUtil.getData(request, PreferenceData.class);
 
-        // validate
-        List<ErrorResponse> errorResponses = data.validate();
-        if(!errorResponses.isEmpty()) {
-            response.status(HttpStatus.BAD_REQUEST_400);
-            return ResponseUtil.buildError(errorResponses);
+        // validate ans create preference
+        PreferenceResult result = createPreference(data);
+        if(!result.hasPreference()) {
+            return result.getErrorResponse();
         }
 
-        // create preference
-        Preference preference = newPreference(data);
-        if(preference == null || !ValidationUtil.hasValue(preference.getInitPoint())) {
-            response.status(HttpStatus.BAD_REQUEST_400);
-            return new ErrorResponse(HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), ValidationUtil.INPUT_DATA_FAILED);
-        }
-
+        // preference
+        Preference preference = result.getPreference();
 
         // Response
         HashMap<String, Object> model = new HashMap<>();
@@ -57,7 +51,6 @@ public class PreferenceController {
         response.status(HttpStatus.OK_200);
         return model;
     }
-
 
     /**
      * Create preference and redirect
@@ -69,14 +62,17 @@ public class PreferenceController {
     public static Object redirect(Request request, Response response) throws MPException {
 
         PreferenceData data = newPreferenceDefault();
-        Preference pref = newPreference(data);
 
-        if(pref != null && !pref.getInitPoint().isEmpty()) {
-            response.status(HttpStatus.INTERNAL_SERVER_ERROR_500);
-            return new ErrorResponse(HttpStatus.getMessage(HttpStatus.INTERNAL_SERVER_ERROR_500), ValidationUtil.PREFERENCE_ERROR);
+        // validate ans create preference
+        PreferenceResult result = createPreference(data);
+        if(!result.hasPreference()) {
+            return result.getErrorResponse();
         }
 
-        String initPoint = pref.getInitPoint();
+        // preference
+        Preference preference = result.getPreference();
+
+        String initPoint = preference.getInitPoint();
         response.redirect(initPoint);
         response.status(HttpStatus.OK_200);
         return "";
@@ -93,11 +89,14 @@ public class PreferenceController {
     public static Object preferenceV1(Request request, Response response) throws MPException  {
 
         PreferenceData data = newPreferenceDefault();
-        com.mercadopago.resources.Preference pref = newPreference(data);
 
+        // validate ans create preference
+        PreferenceResult result = createPreference(data);
+
+        // view model
         HashMap<String, Object> model = new HashMap<>();
-        if(pref != null) {
-            model.put("preference", pref.getInitPoint());
+        if(result.hasPreference()) {
+            model.put("preference", result.getPreference().getInitPoint());
         }
 
         return View.render(response, model, Path.Template.PREFERENCE);
@@ -114,15 +113,56 @@ public class PreferenceController {
     public static Object preferenceV2(Request request, Response response) throws MPException  {
 
         PreferenceData data = newPreferenceDefault();
-        com.mercadopago.resources.Preference preference = newPreference(data);
 
+        // validate ans create preference
+        PreferenceResult result = createPreference(data);
+
+        // view model
         HashMap<String, Object> model = new HashMap<>();
-        if(preference != null) {
-            model.put("preferenceId", preference.getId());
+        if(result.hasPreference()) {
+            model.put("preferenceId", result.getPreference().getId());
         }
 
         return View.render(response, model, Path.Template.PREFERENCE_V2);
     }
+
+
+    /**
+     * Set default data for one preference
+     * @return
+     */
+    private static PreferenceData newPreferenceDefault(){
+        return new PreferenceData("123", "Mesa y sillas", 1, 88.23F);
+    }
+
+
+    /**
+     * Validate the data and create preference
+     * @param data
+     * @return
+     * @throws MPException
+     */
+    private static PreferenceResult createPreference(PreferenceData data) throws MPException {
+        PreferenceResult preferenceResult = new PreferenceResult();
+
+        // validate
+        List<ErrorResponse> errorResponses = data.validate();
+        if(!errorResponses.isEmpty()) {
+            preferenceResult.setErrorResponse(ResponseUtil.buildError(errorResponses));
+            return preferenceResult;
+        }
+
+        // create preference
+        Preference preference = newPreference(data);
+        if(preference == null || !ValidationUtil.hasValue(preference.getInitPoint())) {
+            preferenceResult.setErrorResponse(new ErrorResponse(HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), ValidationUtil.INPUT_DATA_FAILED));
+            return preferenceResult;
+        }
+
+        preferenceResult.setPreference(preference);
+        return preferenceResult;
+    }
+
 
 
     /**
@@ -131,10 +171,10 @@ public class PreferenceController {
      * @return
      * @throws MPException
      */
-    private static com.mercadopago.resources.Preference newPreference(PreferenceData data) throws MPException{
+    private static Preference newPreference(PreferenceData data) throws MPException{
 
         // Create a preference object
-        com.mercadopago.resources.Preference preference = new com.mercadopago.resources.Preference();
+        Preference preference = new Preference();
         // Create an item object
         Item item = new Item();
         item.setId(data.getId())
@@ -145,8 +185,7 @@ public class PreferenceController {
 
         // Create a payer object
         Payer payer = new Payer();
-//        payer.setEmail(Credential.EMAIL);
-        payer.setEmail("algo");
+        payer.setEmail(Credential.EMAIL);
         Address address = new Address();
         address.setStreetName(data.getStreetName());
         address.setStreetNumber(data.getStreetNumber());
@@ -166,15 +205,6 @@ public class PreferenceController {
 
 
     /**
-     * Set default data for one preference
-     * @return
-     */
-    private static PreferenceData newPreferenceDefault(){
-        return new PreferenceData("123", "Mesa y sillas", 1, "ARG", 88.23F);
-    }
-
-
-    /**
      * Status data of payment
      * @param request
      * @param response
@@ -186,8 +216,54 @@ public class PreferenceController {
         String status = request.queryParams("payment_status");
         String statusDetail = request.queryParams("payment_status_detail");
 
-        return "Status: " + status + " - Detalle: " + statusDetail;
+        // Response
+        HashMap<String, Object> model = new HashMap<>();
+        model.put("status", status);
+        model.put("statusDetail", statusDetail);
+        response.status(HttpStatus.OK_200);
+        return model;
     }
 
+    /**
+     * A class with a preference or validation errors
+     */
+    private static class PreferenceResult {
+        private Preference preference;
+        private Object errorResponse;
+
+        public PreferenceResult() {
+        }
+
+
+        public Preference getPreference() {
+            return preference;
+        }
+
+        public void setPreference(Preference preference) {
+            this.preference = preference;
+        }
+
+        public Object getErrorResponse() {
+            if (errorResponse != null) {
+                return errorResponse;
+            }
+            else {
+                HashMap<String, Object> model = new HashMap<>();
+                model.put("httpStatus", HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400));
+                model.put("message", ValidationUtil.INPUT_DATA_FAILED);
+                return model;
+            }
+        }
+
+        public void setErrorResponse(Object errorResponse) {
+            this.errorResponse = errorResponse;
+        }
+
+        public boolean hasPreference() {
+            return preference != null;
+        }
+
+
+    }
 
 }

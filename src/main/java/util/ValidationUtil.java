@@ -8,6 +8,7 @@ public class ValidationUtil {
     public static String VALIDATE_ERROR = "Validate error";
     public static String INPUT_DATA_FAILED = "Input data failed";
     public static String PREFERENCE_ERROR = "Preference Error";
+    public static String NOT_VALID = " is not valid." ;
 
 
 
@@ -33,27 +34,27 @@ public class ValidationUtil {
         if(hasValue(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR,  name + " is not valid.");
+        return new ErrorResponse(VALIDATE_ERROR,  name + NOT_VALID);
     }
 
     public static ErrorResponse validateHasValue(Integer value, String name) {
         if(hasValue(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR, name + " is not valid.");
+        return new ErrorResponse(VALIDATE_ERROR, name + NOT_VALID);
     }
 
     public static ErrorResponse validateHasValue(Float value, String name) {
         if(hasValue(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR, name + " is not valid.");
+        return new ErrorResponse(VALIDATE_ERROR, name + NOT_VALID);
     }
 
     public static ErrorResponse validateIsEmail(String value, String name) {
         if (isEmail(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR, name + " is not valid");
+        return new ErrorResponse(VALIDATE_ERROR, name + NOT_VALID);
     }
 }

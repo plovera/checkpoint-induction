@@ -11,14 +11,17 @@ import java.util.List;
 public class ResponseUtil {
 
     /**
-     * Build exception message with Json format
+     * Build exception message with JsonUtil format
      * @param response
-     * @param errorResponse
+     * @param httpStatus
+     * @param message
      */
-    public static void buildException(Response response, ErrorResponse errorResponse) {
-        response.header("Content-Type", MediaType.JSON_UTF_8.toString());
-        String responseBody = Json.errorDataToJson(errorResponse);
+    public static void buildException(Response response, Integer httpStatus, String message) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.getMessage(httpStatus), message);
+        String responseBody = JsonUtil.errorDataToJson(errorResponse);
         response.body(responseBody);
+        response.status(httpStatus);
+        response.header("Content-Type", MediaType.JSON_UTF_8.toString());
     }
 
     /**
