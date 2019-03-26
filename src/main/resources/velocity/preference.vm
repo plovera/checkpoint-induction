@@ -40,7 +40,7 @@
                 if (json.collection_status=='approved'){
                     message ='Pago acreditado';
                 } else if(json.collection_status=='pending'){
-                    message = 'El usuario no completó el pago';
+                    message = 'El usuario no ha completado el pago';
                 } else if(json.collection_status=='in_process'){
                     message = 'El pago está siendo revisado';
                 } else if(json.collection_status=='rejected'){

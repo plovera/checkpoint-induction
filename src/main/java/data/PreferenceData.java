@@ -13,15 +13,18 @@ public class PreferenceData implements Validator {
     private String StreetName;
     private Integer StreetNumber;
     private String zipCode;
+    private Boolean expired;
+    private String email;
 
     public PreferenceData() {
     }
 
-    public PreferenceData(String id, String title, int quantity, float unitPrice) {
+    public PreferenceData(String id, String title, int quantity, float unitPrice, String email) {
         this.id = id;
         this.title = title;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
+        this.email = email;
     }
 
     public String getId() {
@@ -88,13 +91,22 @@ public class PreferenceData implements Validator {
         this.zipCode = zipCode;
     }
 
+    public Boolean getExpired() { return expired != null && expired; }
+
+    public void setExpired(Boolean expired) { this.expired = expired; }
+
+    public String getEmail() { return email; }
+
+    public void setEmail(String email) { this.email = email; }
+
     @Override
-    public List<ErrorResponse> validate() {
-        List<ErrorResponse> errors = new ArrayList<>();
+    public List<String> validate() {
+        List<String> errors = new ArrayList<>();
         errors.add(ValidationUtil.validateHasValue(id, "id"));
         errors.add(ValidationUtil.validateHasValue(title, "title"));
         errors.add(ValidationUtil.validateHasValue(quantity, "quantity"));
         errors.add(ValidationUtil.validateHasValue(unitPrice, "unitPrice"));
+        errors.add(ValidationUtil.validateIsEmail(email, "email"));
 
         errors.removeAll(Collections.singleton(null));
         return errors;

@@ -17,11 +17,39 @@ public class ResponseUtil {
      * @param message
      */
     public static void buildException(Response response, Integer httpStatus, String message) {
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.getMessage(httpStatus), message);
-        String responseBody = JsonUtil.errorDataToJson(errorResponse);
+        buildException(response, httpStatus, message, null);
+    }
+
+    /**
+     * Build exception message with JsonUtil format
+     * @param response
+     * @param httpStatus
+     * @param message
+     */
+    public static void buildException(Response response, Integer httpStatus, String message, Object error) {
+        String responseBody = buildError(httpStatus, message, error);
         response.body(responseBody);
         response.status(httpStatus);
         response.header("Content-Type", MediaType.JSON_UTF_8.toString());
+    }
+
+    /**
+     * Build model for error message
+     * @param error
+     * @return
+     */
+    public static String buildError(Integer httpStatus, String message, Object error) {
+
+        if(error == null) {
+            ErrorResponse errorResponse = new ErrorResponse(HttpStatus.getMessage(httpStatus), message);
+            return JsonUtil.INSTANCE.errorDataToJson(errorResponse);
+        }
+
+        HashMap<String, Object> model = new HashMap<>();
+        model.put("httpStatus", HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400));
+        model.put("message", message);
+        model.put("errors", error);
+        return JsonUtil.INSTANCE.errorDataToJson(model);
     }
 
     /**
@@ -36,16 +64,4 @@ public class ResponseUtil {
     }
 
 
-    /**
-     * Build model for error message
-     * @param errorResponses
-     * @return
-     */
-    public static HashMap<String, Object> buildError(List<ErrorResponse> errorResponses) {
-        HashMap<String, Object> model = new HashMap<>();
-        model.put("httpStatus", HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400));
-        model.put("message", ValidationUtil.INPUT_DATA_FAILED);
-        model.put("errors", errorResponses);
-        return model;
-    }
 }

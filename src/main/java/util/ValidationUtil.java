@@ -3,12 +3,16 @@ package util;
 import data.ErrorResponse;
 import org.apache.commons.validator.routines.EmailValidator;
 
+import java.util.Date;
+import java.util.List;
+
 public class ValidationUtil {
 
     public static String VALIDATE_ERROR = "Validate error";
     public static String INPUT_DATA_FAILED = "Input data failed";
     public static String PREFERENCE_ERROR = "Preference Error";
     public static String NOT_VALID = " is not valid." ;
+    public static String INIT_POINT_NULL = "Init point is null.";
 
 
 
@@ -29,32 +33,36 @@ public class ValidationUtil {
         return EmailValidator.getInstance().isValid(value);
     }
 
+    public static <E> boolean hasValue(List<E> value) { return value != null && !value.isEmpty(); }
 
-    public static ErrorResponse validateHasValue(String value, String name) {
+    public static boolean hasValue(Date value) { return value != null && value.getTime() > 0; }
+
+
+    public static String validateHasValue(String value, String name) {
         if(hasValue(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR,  name + NOT_VALID);
+        return name + NOT_VALID;
     }
 
-    public static ErrorResponse validateHasValue(Integer value, String name) {
+    public static String validateHasValue(Integer value, String name) {
         if(hasValue(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR, name + NOT_VALID);
+        return name + NOT_VALID;
     }
 
-    public static ErrorResponse validateHasValue(Float value, String name) {
+    public static String validateHasValue(Float value, String name) {
         if(hasValue(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR, name + NOT_VALID);
+        return name + NOT_VALID;
     }
 
-    public static ErrorResponse validateIsEmail(String value, String name) {
+    public static String validateIsEmail(String value, String name) {
         if (isEmail(value)) {
             return null;
         }
-        return new ErrorResponse(VALIDATE_ERROR, name + NOT_VALID);
+        return name + NOT_VALID;
     }
 }

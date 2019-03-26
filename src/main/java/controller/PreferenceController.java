@@ -1,23 +1,17 @@
 package controller;
 
 import com.mercadopago.resources.Preference;
-import data.ErrorResponse;
+import data.InductionException;
 import data.PreferenceData;
+import service.PreferenceServices;
 import util.*;
 import com.mercadopago.exceptions.MPException;
-import com.mercadopago.resources.datastructures.preference.Address;
-import com.mercadopago.resources.datastructures.preference.Item;
-import com.mercadopago.resources.datastructures.preference.Payer;
 import org.eclipse.jetty.http.HttpStatus;
 import spark.Request;
 import spark.Response;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 
 public class PreferenceController {
 
@@ -29,25 +23,21 @@ public class PreferenceController {
      * @throws MPException
      * @throws IOException
      */
-    public static Object create(Request request, Response response) throws MPException, IOException {
+    public static Object create(Request request, Response response) throws MPException, IOException, InductionException {
 
         // Map the data
         PreferenceData data = RequestUtil.getData(request, PreferenceData.class);
 
-        // validate ans create preference
-        PreferenceResult result = createPreference(data);
-        if(!result.hasPreference()) {
-            return result.getErrorResponse();
-        }
-
-        // preference
-        Preference preference = result.getPreference();
+        // validate and create preference
+        Preference preference = PreferenceServices.INSTANCE.createPreference(data);
 
         // Response
         HashMap<String, Object> model = new HashMap<>();
         model.put("initPoint", preference.getInitPoint());
         model.put("expires", preference.getExpires());
-        model.put("expirationDateFrom", preference.getExpirationDateFrom().toString());
+        model.put("expirationDateFrom", ValidationUtil.hasValue(preference.getExpirationDateFrom()) ?
+                preference.getExpirationDateFrom().toString()
+                : null);
         response.status(HttpStatus.OK_200);
         return model;
     }
@@ -59,18 +49,12 @@ public class PreferenceController {
      * @return
      * @throws MPException
      */
-    public static Object redirect(Request request, Response response) throws MPException {
+    public static Object redirect(Request request, Response response) throws MPException, InductionException {
 
         PreferenceData data = newPreferenceDefault();
 
         // validate ans create preference
-        PreferenceResult result = createPreference(data);
-        if(!result.hasPreference()) {
-            return result.getErrorResponse();
-        }
-
-        // preference
-        Preference preference = result.getPreference();
+        Preference preference = PreferenceServices.INSTANCE.createPreference(data);
 
         String initPoint = preference.getInitPoint();
         response.redirect(initPoint);
@@ -86,19 +70,18 @@ public class PreferenceController {
      * @return
      * @throws MPException
      */
-    public static Object preferenceV1(Request request, Response response) throws MPException  {
+    public static Object preferenceV1(Request request, Response response) throws MPException, InductionException {
 
         PreferenceData data = newPreferenceDefault();
+        data.setExpired(true);
 
         // validate ans create preference
-        PreferenceResult result = createPreference(data);
+        Preference preference = PreferenceServices.INSTANCE.createPreference(data);
 
         // view model
         HashMap<String, Object> model = new HashMap<>();
-        if(result.hasPreference()) {
-            model.put("preference", result.getPreference().getInitPoint());
-        }
-
+        model.put("preference", preference.getInitPoint());
+        response.status(HttpStatus.OK_200);
         return View.render(response, model, Path.Template.PREFERENCE);
     }
 
@@ -110,97 +93,18 @@ public class PreferenceController {
      * @return
      * @throws MPException
      */
-    public static Object preferenceV2(Request request, Response response) throws MPException  {
+    public static Object preferenceV2(Request request, Response response) throws MPException, InductionException {
 
         PreferenceData data = newPreferenceDefault();
 
         // validate ans create preference
-        PreferenceResult result = createPreference(data);
+        Preference preference = PreferenceServices.INSTANCE.createPreference(data);
 
         // view model
         HashMap<String, Object> model = new HashMap<>();
-        if(result.hasPreference()) {
-            model.put("preferenceId", result.getPreference().getId());
-        }
-
+        model.put("preferenceId", preference.getId());
+        response.status(HttpStatus.OK_200);
         return View.render(response, model, Path.Template.PREFERENCE_V2);
-    }
-
-
-    /**
-     * Set default data for one preference
-     * @return
-     */
-    private static PreferenceData newPreferenceDefault(){
-        return new PreferenceData("123", "Mesa y sillas", 1, 88.23F);
-    }
-
-
-    /**
-     * Validate the data and create preference
-     * @param data
-     * @return
-     * @throws MPException
-     */
-    private static PreferenceResult createPreference(PreferenceData data) throws MPException {
-        PreferenceResult preferenceResult = new PreferenceResult();
-
-        // validate
-        List<ErrorResponse> errorResponses = data.validate();
-        if(!errorResponses.isEmpty()) {
-            preferenceResult.setErrorResponse(ResponseUtil.buildError(errorResponses));
-            return preferenceResult;
-        }
-
-        // create preference
-        Preference preference = newPreference(data);
-        if(preference == null || !ValidationUtil.hasValue(preference.getInitPoint())) {
-            preferenceResult.setErrorResponse(new ErrorResponse(HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), ValidationUtil.INPUT_DATA_FAILED));
-            return preferenceResult;
-        }
-
-        preferenceResult.setPreference(preference);
-        return preferenceResult;
-    }
-
-
-
-    /**
-     * Create a Preference of MP
-     * @param data
-     * @return
-     * @throws MPException
-     */
-    private static Preference newPreference(PreferenceData data) throws MPException{
-
-        // Create a preference object
-        Preference preference = new Preference();
-        // Create an item object
-        Item item = new Item();
-        item.setId(data.getId())
-                .setTitle(data.getTitle())
-                .setQuantity(data.getQuantity())
-                .setCurrencyId(data.getCurrencyId())
-                .setUnitPrice(data.getUnitPrice());
-
-        // Create a payer object
-        Payer payer = new Payer();
-        payer.setEmail(Credential.EMAIL);
-        Address address = new Address();
-        address.setStreetName(data.getStreetName());
-        address.setStreetNumber(data.getStreetNumber());
-        address.setZipCode(data.getZipCode());
-        payer.setAddress(address);
-        // Setting preference properties
-        preference.setPayer(payer);
-        preference.appendItem(item);
-        // Expire tomorrow
-        preference.setExpires(true);
-        preference.setExpirationDateFrom(Date.from(LocalDateTime.now().plusDays(1).atZone(ZoneId.systemDefault()).toInstant()));
-        // Save and posting preference
-        preference.save();
-
-        return preference;
     }
 
 
@@ -224,46 +128,16 @@ public class PreferenceController {
         return model;
     }
 
+
     /**
-     * A class with a preference or validation errors
+     * Set default data for one preference
+     * @return
      */
-    private static class PreferenceResult {
-        private Preference preference;
-        private Object errorResponse;
-
-        public PreferenceResult() {
-        }
-
-
-        public Preference getPreference() {
-            return preference;
-        }
-
-        public void setPreference(Preference preference) {
-            this.preference = preference;
-        }
-
-        public Object getErrorResponse() {
-            if (errorResponse != null) {
-                return errorResponse;
-            }
-            else {
-                HashMap<String, Object> model = new HashMap<>();
-                model.put("httpStatus", HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400));
-                model.put("message", ValidationUtil.INPUT_DATA_FAILED);
-                return model;
-            }
-        }
-
-        public void setErrorResponse(Object errorResponse) {
-            this.errorResponse = errorResponse;
-        }
-
-        public boolean hasPreference() {
-            return preference != null;
-        }
-
-
+    private static PreferenceData newPreferenceDefault(){
+        return new PreferenceData("123", "Mesa y sillas", 1, 88.23F, Credential.EMAIL);
     }
+
+
+
 
 }

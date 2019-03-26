@@ -78,8 +78,8 @@ public class PaymentData implements Validator{
 
 
     @Override
-    public List<ErrorResponse> validate() {
-        List<ErrorResponse> errors = new ArrayList<>();
+    public List<String> validate() {
+        List<String> errors = new ArrayList<>();
         errors.add(ValidationUtil.validateHasValue(token, "token"));
         errors.add(ValidationUtil.validateHasValue(amount, "amount"));
         errors.add(ValidationUtil.validateHasValue(payment_method_id, "payment_method_id"));

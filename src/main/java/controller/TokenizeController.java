@@ -1,8 +1,10 @@
 package controller;
 
 import data.ErrorResponse;
+import data.InductionException;
 import data.PaymentData;
 import org.eclipse.jetty.http.HttpStatus;
+import service.TokenizeServices;
 import util.*;
 import spark.Request;
 import spark.Response;
@@ -48,25 +50,13 @@ public class TokenizeController {
      * @throws IOException
      * @throws MPException
      */
-    public static Object payment(Request request, Response response) throws IOException, MPException {
+    public static Object payment(Request request, Response response) throws IOException, MPException, InductionException {
 
         // map the data
         PaymentData data = RequestUtil.getData(request, PaymentData.class);
 
-        // validate the data
-        List<ErrorResponse> errorResponses = data.validate();
-        if(!errorResponses.isEmpty()) {
-            response.status(HttpStatus.BAD_REQUEST_400);
-            return ResponseUtil.buildError(errorResponses);
-        }
-
-        // create payment and then validate
-        Payment payment = savePayment(data);
-        if(payment.getStatus() == null) {
-            response.status(HttpStatus.BAD_REQUEST_400);
-            String message = payment.getLastApiResponse() != null ? JsonUtil.getParam(payment.getLastApiResponse().getStringResponse(), "message") : ValidationUtil.INPUT_DATA_FAILED;
-            return new ErrorResponse(HttpStatus.getMessage(HttpStatus.BAD_REQUEST_400), message);
-        }
+        // validate and create payment
+        Payment payment = TokenizeServices.INSTANCE.createPayment(data);
 
         // Response
         HashMap<String, Object> model = new HashMap<>();
@@ -74,27 +64,6 @@ public class TokenizeController {
         model.put("statusDetail", payment.getStatusDetail());
         response.status(HttpStatus.OK_200);
         return model;
-    }
-
-    /**
-     * Create a Payment of MP
-     * @param data
-     * @return
-     * @throws MPException
-     */
-    private static Payment savePayment(PaymentData data) throws MPException {
-        Payment payment = new Payment();
-        payment.setTransactionAmount(data.getAmount())
-                .setToken(data.getToken())
-                .setDescription(data.getDescription())
-                .setInstallments(data.getInstallments())
-                .setPaymentMethodId(data.getPayment_method_id())
-                .setIssuerId(data.getIssuer_id())
-                .setPayer(new Payer()
-                        .setEmail(data.getEmail()));
-
-        // Save payment
-        return payment.save();
     }
 
 }

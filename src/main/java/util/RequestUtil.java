@@ -20,11 +20,11 @@ public class RequestUtil {
 
         // if content type is application/x-www-form-urlencoded, decode to json
         if(request.contentType().equals(MediaType.FORM_DATA.toString())) {
-            body = JsonUtil.decodeMessage(body);
+            body = JsonUtil.INSTANCE.decodeMessage(body);
         }
 
         // mapping request data
-        return JsonUtil.mapToData(body, tClass);
+        return JsonUtil.INSTANCE.mapToData(body, tClass);
     }
 
 }

@@ -8,10 +8,11 @@ import com.fasterxml.jackson.databind.*;
 import data.ErrorResponse;
 import spark.ResponseTransformer;
 
-public class JsonUtil implements ResponseTransformer  {
+public enum JsonUtil implements ResponseTransformer  {
 
+    INSTANCE;
 
-    public static ObjectMapper mapper = new ObjectMapper();
+    public static final ObjectMapper mapper = new ObjectMapper();
 
     /**
      * Map a json string to a data model of the class
@@ -22,7 +23,12 @@ public class JsonUtil implements ResponseTransformer  {
      * @throws IOException
      */
     public static <T> T mapToData(String str, Class<T> tClass) throws IOException {
-        return mapper.readValue(str, tClass);
+        try {
+            return mapper.readValue(str, tClass);
+        }
+        catch (IOException e) {
+            throw new IOException(e.getMessage().replace('"','\''));
+        }
     }
 
     /**
@@ -41,7 +47,7 @@ public class JsonUtil implements ResponseTransformer  {
      * @param errorResponse
      * @return
      */
-    public static String errorDataToJson(ErrorResponse errorResponse){
+    public static <T> String errorDataToJson(T errorResponse){
         try {
             return mapper.writeValueAsString(errorResponse);
         } catch (IOException e) {
