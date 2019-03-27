@@ -1,7 +1,9 @@
 package controller;
 
+import com.mercadopago.resources.Payment;
 import com.mercadopago.resources.Preference;
 import data.InductionException;
+import data.PaymentResponse;
 import data.PreferenceData;
 import service.PreferenceServices;
 import util.*;
@@ -11,6 +13,7 @@ import spark.Request;
 import spark.Response;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 
 public class PreferenceController {
@@ -32,14 +35,15 @@ public class PreferenceController {
         Preference preference = PreferenceServices.INSTANCE.createPreference(data);
 
         // Response
-        HashMap<String, Object> model = new HashMap<>();
-        model.put("initPoint", preference.getInitPoint());
-        model.put("expires", preference.getExpires());
-        model.put("expirationDateFrom", ValidationUtil.hasValue(preference.getExpirationDateFrom()) ?
-                preference.getExpirationDateFrom().toString()
-                : null);
+
         response.status(HttpStatus.OK_200);
-        return model;
+        String date = ValidationUtil.hasValue(preference.getExpirationDateFrom()) ?
+                preference.getExpirationDateFrom().toString()
+                : null;
+
+        PaymentResponse pay = new PaymentResponse(preference.getInitPoint(), preference.getExpires(), date);
+        return pay;
+
     }
 
     /**

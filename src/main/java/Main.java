@@ -8,6 +8,11 @@ import static spark.Spark.*;
 public class Main {
 
 
+    /**
+     * Start the aplication
+     * @param arg
+     * @throws MPException
+     */
     public static void main(String[] arg) throws MPException {
 
         // configure

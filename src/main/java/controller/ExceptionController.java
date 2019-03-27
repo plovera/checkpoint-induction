@@ -19,29 +19,29 @@ public class ExceptionController {
      * @param response
      */
     public static void ioExceptionHandler(IOException exception, Request request, Response response) {
-        String message = exception.getMessage().isEmpty() ? exception.toString() : exception.getMessage();
+        String message = ValidationUtil.hasValue(exception.getMessage()) ? exception.getMessage() : exception.toString();
         ResponseUtil.buildException(response, HttpStatus.BAD_REQUEST_400, message);
     }
 
     /**
-     *
+     * Induction Exception of this aplication
      * @param request
      * @param response
      */
     public static void inductionExceptionHandler(InductionException exception, Request request, Response response) {
-        String message = exception.getMessage().isEmpty() ? exception.toString() : exception.getMessage();
+        String message = ValidationUtil.hasValue(exception.getMessage())?  exception.getMessage() : exception.toString();
         ResponseUtil.buildException(response, exception.getStatusCode(), message, exception.getErrors());
 
     }
 
     /**
-     * MP exception
+     * exception of Mercado Pago
      * @param exception
      * @param request
      * @param response
      */
     public static void mpExceptionHandler(MPException exception, Request request, Response response) {
-        String message = exception.getMessage().isEmpty() ? exception.toString() : exception.getMessage();
+        String message = exception.getMessage().isEmpty() ?  exception.getMessage() : exception.toString();
         ResponseUtil.buildException(response, exception.getStatusCode(), message);
     }
 
@@ -52,7 +52,7 @@ public class ExceptionController {
      * @param response
      */
     public static void exceptionHandler(Exception exception, Request request, Response response) {
-        String message = ValidationUtil.hasValue(exception.getMessage()) ? exception.getMessage() : exception.toString();
+        String message = ValidationUtil.hasValue(exception.getMessage())? exception.getMessage() : exception.toString();
         ResponseUtil.buildException(response, HttpStatus.INTERNAL_SERVER_ERROR_500, message);
     }
 }
