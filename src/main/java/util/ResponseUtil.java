@@ -1,12 +1,12 @@
 package util;
 
+//import com.google.common.net.MediaType;
 import com.google.common.net.MediaType;
 import data.ErrorResponse;
 import org.eclipse.jetty.http.HttpStatus;
 import spark.Response;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class ResponseUtil {
 
